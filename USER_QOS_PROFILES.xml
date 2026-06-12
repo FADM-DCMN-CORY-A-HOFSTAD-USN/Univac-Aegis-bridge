@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dds xmlns:xsi="http://w3.org"
+     xsi:noNamespaceSchemaLocation="http://rti.com">
+
+    <!-- QoS Library Deployment for Shipboard Tactical Network -->
+    <qos_library name="TacticalCombatLibrary">
+        
+        <!-- Profile optimized specifically for High-Priority Weapon/Target Tracks -->
+        <qos_profile name="HighPriorityTargetProfile" is_default_qos="false">
+            
+            <!-- 1. RELIABILITY: Ensure packet delivery without long blocking delays -->
+            <reliability>
+                <kind>RELIABLE_RELIABILITY_QOS</kind>
+                <!-- Prevent the driver loop from blocking infinitely if the network congests -->
+                <max_blocking_time>
+                    <sec>0</sec>
+                    <nanosec>20000000</nanosec> <!-- 20 milliseconds max block -->
+                </max_blocking_time>
+            </reliability>
+
+            <!-- 2. HISTORY: Keep only the freshest track update per unique Target ID -->
+            <history>
+                <kind>KEEP_LAST_HISTORY_QOS</kind>
+                <depth>1</depth> <!-- Old range/bearing data is useless for live fire control -->
+            </history>
+
+            <!-- 3. DURABILITY: Do not waste bandwidth syncing past history to new consoles -->
+            <durability>
+                <kind>VOLATILE_DURABILITY_QOS</kind>
+            </durability>
+
+            <!-- 4. TRANSPORT PRIORITY: Map directly to Network Layer 3 QoS (DiffServ / DSCP) -->
+            <!-- Maps to DSCP 46 (Expedited Forwarding), forcing switches to route this packet first -->
+            <transport_priority>
+                <value>46</value> 
+            </transport_priority>
+
+            <!-- 5. DEADLINE: Raise an alarm if a target track stops reporting -->
+            <deadline>
+                <period>
+                    <sec>0</sec>
+                    <nanosec>100000000</nanosec> <!-- 100 milliseconds heartbeat deadline -->
+                </period>
+            </deadline>
+
+            <!-- 6. LIVELINESS: Automate hardware health monitoring for the legacy interface -->
+            <liveliness>
+                <kind>AUTOMATIC_LIVELINESS_QOS</kind>
+                <lease_duration>
+                    <sec>0</sec>
+                    <nanosec>300000000</nanosec> <!-- Declare hardware dead after 300ms of silence -->
+                </lease_duration>
+            </liveliness>
+
+            <!-- 7. RESOURCE LIMITS: Hard boundary allocations to guarantee deterministic memory usage -->
+            <resource_limits>
+                <max_samples>256</max_samples>
+                <max_instances>128</max_instances> <!-- Maximum simultaneous tracks tracked at once -->
+                <max_samples_per_instance>2</max_samples_per_instance>
+            </resource_limits>
+
+        </qos_profile>
+    </qos_library>
+</dds>
