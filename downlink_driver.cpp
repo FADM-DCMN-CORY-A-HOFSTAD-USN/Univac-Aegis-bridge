@@ -1,7 +1,9 @@
-// Append or include alongside your existing C++ network driver environment
 #include "CommandDownlinkTypeSupportImpl.h"
+#include <mutex> // Required for Thread Synchronization
 
-// Listener class that fires a callback whenever Aegis issues a fire command
+// Global Mutex to prevent data collision when multiple DDS threads fire at once
+std::mutex udp_tx_mutex;
+
 class WeaponDownlinkListener : public DDS::DataReaderListener {
 public:
     int tx_socket_fd;
@@ -12,20 +14,21 @@ public:
         AegisActuationCommand cmd;
         DDS::SampleInfo info;
 
+        // DDS may call this function simultaneously across multiple cores
         if (cmd_reader->take_next_sample(cmd, info) == DDS::RETCODE_OK) {
             if (info.valid_data) {
-                uint32_t outbound_payload[4]; // Expanded to 4 words to include CRC-32 checksum
+                uint32_t outbound_payload[4]; 
 
-                // Convert Little-Endian Aegis math into Big-Endian layout for UNIVAC registers
                 outbound_payload[0] = htonl(cmd.raw_launcher_azimuth);
                 outbound_payload[1] = htonl(cmd.raw_launcher_elevation);
                 outbound_payload[2] = htonl(cmd.fire_trigger_bitmask);
 
-                // Calculate simple logical parity checksum (XOR) for the hardened ACTUATE.CMS fallback logic
                 uint32_t crc_val = cmd.raw_launcher_azimuth ^ cmd.raw_launcher_elevation ^ cmd.fire_trigger_bitmask;
                 outbound_payload[3] = htonl(crc_val);
 
-                // Push raw 16-byte payload over Ethernet straight to the FPGA interface unit
+                // CRITICAL: Lock the UDP socket so parallel cores don't interleave bytes on the wire
+                std::lock_guard<std::mutex> lock(udp_tx_mutex);
+                
                 sendto(tx_socket_fd, outbound_payload, 16, 0, 
                        (struct sockaddr*)&dtic_hardware_addr, sizeof(dtic_hardware_addr));
             }
