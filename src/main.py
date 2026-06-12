@@ -27,6 +27,11 @@ from control_core.anchor_interlock_subroutine import AutonomousAnchorInterlockSu
 anchor_lock_manager = AutonomousAnchorInterlockSubroutine()
 from network_layer.hardware_watchdog import AsynchronousHardwareWatchdog
 
+from control_core.bilge_authority_router import BilgeControlAuthorityRouter
+
+# Initialize the tri-state multiplexer router
+bilge_router = BilgeControlAuthorityRouter()
+
 # Initialize watchdog with a 1.0 second timeout safety margin
 watchdog = AsynchronousHardwareWatchdog(critical_timeout_sec=1.0)
 watchdog.start_watchdog()
@@ -140,6 +145,11 @@ def bootstrap_system():
     try:
         while True:
             start_cycle_time = time.time()
+            # Ingest incoming arbitration codes from remote networks or Sea Machines interfaces
+            requested_mode = active_targets.get('requested_authority_mode')
+            if requested_mode:
+            # Trigger the on-the-fly change gate
+            bilge_router.set_control_authority(requested_mode)
 
             # Inside the while True: loop right after router output dispatching:
             watchdog.poke_watchdog('MAIN_CORE_MATH')
