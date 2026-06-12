@@ -1,0 +1,6 @@
+struct LegacyTrack {
+    unsigned long track_id;
+    unsigned long target_range_yds;
+    unsigned long target_bearing_min;
+    unsigned long target_altitude_ft;
+};
