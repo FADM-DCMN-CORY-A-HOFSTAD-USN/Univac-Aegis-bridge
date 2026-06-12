@@ -1,7 +1,8 @@
 # File Name: buffered_tactical_console.py
 # Location: Root source folder
 # Subsystem: Memory-Buffered Low-Latency Tactical Direct-Fire Console
-
+from src.control_core.jammer_targeting_system import RadarJammerTargetingSystem
+ew_system = RadarJammerTargetingSystem(own_ship_x=0.0, own_ship_y=0.0)
 import tkinter as tk
 import math
 import time
