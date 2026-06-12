@@ -57,7 +57,66 @@ Verify that the Sea Machines thermal verification sensor correctly interfaces wi
 *   [ ] **4.3 Heartbeat Timeout Interlock Protection**: Temporarily disconnect the main sensor network switch array to mimic a hardware data dropout while running cool.
     *   *Verification: Within $1.0\text{ second}$, the system must register a true timeout fault, overwrite the status register to `"OFFLINE"`, trip the interlock gates, and drive the motor torque output directly down to $0.0\text{ Nm}$ to protect the ship.*
 
----
-
 ## 6. Pre-Sail Certification Sign-Off
 Once all four verification phases are successfully executed without triggering hard faults or mechanical linkage jam interlocks, clear the bridge console error display rings. The replacement bridge cognitive matrix is now certified as **Fully Operational and Ready for Underway Navigation**.
+
+## 7. Phase 5: Asymmetric Port/Starboard Actuator Calibration
+This field protocol verifies electrical decoupling tolerances across dual independent hydraulic control loops (PUNVCPRT and PUNVCSTB) before underway operations.
+
+*   [ ] **5.1 Channel Isolation Verification**: Ensure the asymmetric matrix outputs split differential commands cleanly when a lateral bias is active.
+    *   *Field Test*: Manually inject an artificial 5-degree port hull list via the diagnostic override console while holding a straight heading.
+    *   *Verification*: Port control loop signal must shift to a protective negative potential (e.g., -1.43 VDC) while the Starboard loop tracks a counter-acting positive bias (+1.43 VDC).
+*   [ ] **5.2 Voltage Balance Field Measurement**: Hook an isolated digital multimeter to the differential breakout pins on the main RS-422 interface terminal strip.
+    *   *Verification*: Zero-point cross-talk check. With the hull sitting flat at the pier (0.0° roll, 0.0 rad/s roll rate), the differential reading between Port (Pin 3/4) and Starboard (Pin 7/8) loops must sit within 0.00 VDC ± 15mV. If the variance exceeds 15mV, re-null the amplifier trim-pots before clearing the steering interlock.
+*   [ ] **5.3 Combat-Lock Bit Step-Response**: Force the weapon parser to simulate an active storm-firing trajectory state flag.
+    *   *Verification*: Observe the oscilloscope on the steering gear PLC interface. The 4th tracking data field (Combat Lock Bit) must snap instantaneously from `0` to `1`, signaling the valves to open their high-flow hydraulic bypass paths.
+
+## 8. Modular System Expansion Guide (For Future Generations)
+To preserve the hard-deterministic execution profiles of this platform, all newly developed software plugins, hardware interfaces, or sensor processing layers must conform to the strict "Co-Processor Architecture Pattern."
+
+### A. Architectural Golden Rules
+1. **Never Block the Loop**: Any new module requiring physical I/O over serial, USB, Ethernet, or file storage MUST manage its data transport arrays inside an isolated background execution thread. 
+2. **Interface via Caches Only**: New modules must read inputs from a thread-safe snapshot dict and dump their calculated results into a locked memory register. Never allow an unvalidated external data stream to directly alter active control law states.
+3. **Keep the Core Plant Pure**: The core calculation loop inside `main.py` should only handle math transformations (dt = 0.02). It should never manage string connections, parse serial bytes, or open disk file blocks.
+
+### B. Standard Code Block Template for New Subsystem Modules
+When constructing a new prediction or sensor processing layer, utilize this structural template to ensure uniform compilation and thread safety across generations:
+
+```python
+# File Template Name: generic_expansion_module.py
+# Location: /src/control_core/ or /src/network_layer/
+
+import threading
+import time
+
+class GenericUnivacExpansionModule:
+    def __init__(self, physical_bounds: dict):
+        """Initializes state vectors and establishes hardware memory protection locks."""
+        self.lock = threading.Lock()
+        self.module_active = False
+        
+        # Load static variables out of the boot profile
+        self.safety_limit = float(physical_bounds.get('generic_limit_value', 100.0))
+        
+        # Local calculation memory register
+        self.latest_processed_output = 0.0
+
+    def compute_deterministic_math_step(self, live_telemetry: dict, dt: float) -> float:
+        """
+        Calculates values synchronously inside the 50Hz main timing wheel.
+        This function MUST be highly optimized and completely free of I/O operations.
+        """
+        raw_input = float(live_telemetry.get('target_sensor_variable', 0.0))
+        
+        # Execute your algebraic or differential control matrix step
+        calculated_result = raw_input * 0.145 * dt
+        
+        with self.lock:
+            self.latest_processed_output = max(-self.safety_limit, min(self.safety_limit, calculated_result))
+            return self.latest_processed_output
+
+    def get_thread_safe_snapshot(self) -> float:
+        """Extracts values cleanly for external telemetry logging or UI blitting layers."""
+        with self.lock:
+            return self.latest_processed_output
+```
