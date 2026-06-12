@@ -29,6 +29,15 @@ class NAVMOD_Subsystem:
             "heading_filtered_rad": telemetry['yaw_rate_rads'] * 0.95 # Feature 15
         }
 
+    def feature_14_coriolis_drift_compensation(self, latitude_rad: float, speed_ms: float) -> float:
+    """Calculates the lateral drift induced by the rotation of the Earth."""
+    omega_earth = 7.2921e-5 # Earth's angular velocity
+    # Coriolis Force = 2 * mass * speed * Earth_Rotation * sin(latitude)
+    # We return the exact rudder offset degrees needed to cancel the drift.
+    coriolis_acceleration = 2.0 * speed_ms * omega_earth * math.sin(latitude_rad)
+    rudder_correction_deg = math.degrees(math.asin(coriolis_acceleration / 9.81))
+    return rudder_correction_deg
+    
 class HYDRO_Subsystem:
     """Features 16 - 35: Hydrodynamic & Shallow-Water Constraints"""
     def __init__(self, draft, length, beam):
