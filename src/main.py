@@ -18,6 +18,11 @@ from network_layer.data_logger_node import AutomatedMissionDataLogger
 from network_layer.weapon_async_parser import WeaponAsyncParserExtension
 from src.network_layer.weapon_serial_serializer import WeaponSerialOutputSerializer
 ew_serializer = WeaponSerialOutputSerializer(manufacturer_code="UNVC")
+from src.control_core.asymmetric_roll_stabilizer import AsymmetricRollStabilizerMatrix
+from src.network_layer.asymmetric_network_serializer import AsymmetricNetworkSerializer
+
+asym_stabilizer = AsymmetricRollStabilizerMatrix(vessel_profile)
+asym_serializer = AsymmetricNetworkSerializer(prefix_manufacturer="PUNVC")
 
 # Instantiate the high-speed async gun-ring decoder extension
 weapon_async_link = WeaponAsyncParserExtension(manufacturer_code="MK45")
@@ -78,7 +83,29 @@ def bootstrap_system():
     # Identify active fleet hull type to track weapon mass cross-coupling shifts
     # Options catalog: 'DDG_ARLEIGH_BURKE', 'CG_TICONDEROGA', 'WMSL_LEGEND_USCG'
     selected_ship_class = 'DDG_ARLEIGH_BURKE' 
-    
+
+    # Extract dynamic depth limits to clamp hydraulic movement capabilities
+    active_depth_limits = engine._apply_shallow_water_enforcement(live_telemetry, active_targets)
+    slew_rate_cap = active_depth_limits['slew_rate_cap']
+
+    # Execute the fire-synchronized asymmetric stabilization matrix step
+    stabilizer_commands = asym_stabilizer.calculate_fire_synchronized_stabilization(
+    targets=active_targets,
+    telemetry=live_telemetry,
+    weapon_state=live_gun_state,
+    dt=dt
+    )
+
+    # Convert left and right angles into independent binary NMEA ASCII frames
+    port_wire_packet, stbd_wire_packet = asym_serializer.serialize_asymmetric_actuator_channels(
+    stabilizer_matrix_output=stabilizer_commands,
+    depth_slew_cap=slew_rate_cap
+    )
+
+    # Stream the isolated channels sequentially down your active copper serial port
+    steering_serial_hardware_wire.write(port_wire_packet)
+    steering_serial_hardware_wire.write(stbd_wire_packet)
+
     try:
         while True:
             start_cycle_time = time.time()
