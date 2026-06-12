@@ -134,6 +134,17 @@ Used by navigation consoles and autopilot routines during active transit to chan
   * `msg_type`: *String*. Must read exactly `"anchor_release"`.
   * `navy_anchor_release_code`: *Boolean*. Clearance token flag. Set to `true` to release the physical mechanical locking pins and clear the emergency override block. Set to `false` to maintain active safety clamping.
 
+### D. Endpoint 4: Bilge Control Authority Arbitrator (`bilge_arbitration`)
+Allows remote operator stations, legacy links, or the Sea Machines bus to alter which system commands the environmental overboard bilge pumps on the fly.
+
+* **Payload Example**:
+  ```json
+  {"msg_type": "bilge_arbitration", "requested_authority_mode": "REPLACEMENT"}
+  ```
+* **Field Specifications**:
+  * `msg_type`: *String*. Must read exactly `"bilge_arbitration"`.
+  * `requested_authority_mode`: *String*. The target hardware routing code selection. Must evaluate to exactly `"UNIVAC"` (Mainframe pass-through), `"REPLACEMENT"` (Us), or `"SEA_MACHINES"` (Autonomy).
+
 ---
 
 ## 3. Server Acknowledgment and Status Responses
