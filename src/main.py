@@ -20,6 +20,8 @@ from src.network_layer.weapon_serial_serializer import WeaponSerialOutputSeriali
 ew_serializer = WeaponSerialOutputSerializer(manufacturer_code="UNVC")
 from src.control_core.asymmetric_roll_stabilizer import AsymmetricRollStabilizerMatrix
 from src.network_layer.asymmetric_network_serializer import AsymmetricNetworkSerializer
+from control_core.anchor_interlock_subroutine import AutonomousAnchorInterlockSubroutine
+anchor_lock_manager = AutonomousAnchorInterlockSubroutine()
 
 asym_stabilizer = AsymmetricRollStabilizerMatrix(vessel_profile)
 asym_serializer = AsymmetricNetworkSerializer(prefix_manufacturer="PUNVC")
@@ -109,6 +111,40 @@ def bootstrap_system():
     try:
         while True:
             start_cycle_time = time.time()
+
+            # ... Weapons balancing and bridge calculation loops run above ...
+
+            # Read the manual Navy unlock flag sent via the secure TCP command server
+            # Expects a JSON property: {"navy_anchor_release_code": true}
+            navy_clearance_flag = active_targets.get('navy_anchor_release_code', False)
+
+            # Execute the autonomous weapons-coupled anchor safety checks
+            anchor_interlock_commands = anchor_lock_manager.evaluate_anchor_safety_matrix(
+                weapon_metrics=live_gun_state,
+                user_override_unlock=navy_clearance_flag
+            )
+
+            # If the interlock blocks Sea Machines authority, override standard transit settings
+            if not anchor_interlock_commands['sea_machines_anchor_authority_allowed']:
+                # Force propulsion safety hold profiles if anchor is locked/hoisting under fire
+                actuator_commands['active_rpm_cap'] = min(actuator_commands['active_rpm_cap'], 100.0)
+            
+            # Serialize and append the anchor command sentence block
+            # Format: $PUNVCANC,clutch,brake,block*CS\r\n
+            anchor_payload = f"PUNVCANC,{anchor_interlock_commands['command_windlass_clutch_engage']},{anchor_interlock_commands['command_brake_solenoid_lock']},{1 if not anchor_interlock_commands['sea_machines_anchor_authority_allowed'] else 0}"
+            
+            # Calculate standard XOR checksum and write directly to your RS-422 bus
+            anchor_cs = 0
+            for char in anchor_payload: anchor_cs ^= ord(char)
+            anchor_packet = f"${anchor_payload}*{anchor_cs:02X}\r\n".encode('ascii')
+            
+            try:
+                weapon_bus_serial_port.write(anchor_packet)
+            except NameError:
+                pass
+
+            # Append anchor diagnostics metrics to your outbound network packet structures
+            actuator_commands['upstream_autonomy_telemetry']['Anchor_Interlock_Status'] = anchor_interlock_commands
 
             # Capture the raw text string directly off your physical RS-422 connection
             raw_gun_bus_string = weapon_serial_hardware_wire.readline().decode('ascii', errors='ignore')
