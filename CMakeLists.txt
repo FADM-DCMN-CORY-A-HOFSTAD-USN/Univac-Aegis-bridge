@@ -58,3 +58,6 @@ install(TARGETS aegis_bridge_driver
 )
 
 message(STATUS "Aegis-UNIVAC Legacy Bridge build matrix configured successfully.")
+
+find_package(Threads REQUIRED)
+target_link_libraries(AegisLegacyBridge PRIVATE Threads::Threads)
