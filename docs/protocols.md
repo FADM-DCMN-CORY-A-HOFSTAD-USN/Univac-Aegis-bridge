@@ -76,6 +76,19 @@ Checksum = XOR sum of ord(char) for all characters in the payload body.
 * Example Binary Frame:
   $PUNVCBLG,1,0,142.5*2C\r\n
 
+## 3.F. Electro-Mechanical Flag Changer Command Set ($PUNVCFLG)
+* Source Subsystem: Flag Changer Subroutine (flag_changer_subroutine.py)
+* Target Hardware Link: Flag Mast Winch Motor Drive Servo / Halyard Lock Pin Solenoid PLC
+* Transmission Cadence: 50Hz Frequency Cycles (20ms intervals)
+* Sentence Template:
+  $PUNVCFLG,[Motor_Pos],[Motor_Power],[Lock_Pin]*[CS]\r\n
+* Payload Fields Specification:
+  * Motor_Pos: Float, 1 decimal place. Target halyard position percentage. Range: 0.0% to 100.0%.
+  * Motor_Power: Integer, 1-bit. Winch motor relay power activation. 1 = Running, 0 = Stopped.
+  * Lock_Pin: Integer, 1-bit. Mechanical brake solenoid engage pin. 1 = Locked, 0 = Retracted.
+* Example Binary Frame:
+  $PUNVCFLG,100.0,1,0*1A\r\n
+
 
 ## 4. High-Speed Ordnance Bus Commands (Electronic Warfare)
 
