@@ -22,6 +22,11 @@ from src.control_core.asymmetric_roll_stabilizer import AsymmetricRollStabilizer
 from src.network_layer.asymmetric_network_serializer import AsymmetricNetworkSerializer
 from control_core.anchor_interlock_subroutine import AutonomousAnchorInterlockSubroutine
 anchor_lock_manager = AutonomousAnchorInterlockSubroutine()
+from network_layer.hardware_watchdog import AsynchronousHardwareWatchdog
+
+# Initialize watchdog with a 1.0 second timeout safety margin
+watchdog = AsynchronousHardwareWatchdog(critical_timeout_sec=1.0)
+watchdog.start_watchdog()
 
 asym_stabilizer = AsymmetricRollStabilizerMatrix(vessel_profile)
 asym_serializer = AsymmetricNetworkSerializer(prefix_manufacturer="PUNVC")
@@ -111,6 +116,15 @@ def bootstrap_system():
     try:
         while True:
             start_cycle_time = time.time()
+
+            # Inside the while True: loop right after router output dispatching:
+            watchdog.poke_watchdog('MAIN_CORE_MATH')
+
+            # Safe Mode Guard Interlock: If the watchdog trips, overrule the math outputs
+            wd_status = watchdog.get_watchdog_diagnostics()
+            if wd_status['watchdog_system_faulted']:
+            actuator_commands['command_motor_torque_nm'] = 0.0
+            print("[SAFETY_INTERLOCK] Motor power cut. Reason: Subsystem Thread Loss.")
 
             # ... Weapons balancing and bridge calculation loops run above ...
 
