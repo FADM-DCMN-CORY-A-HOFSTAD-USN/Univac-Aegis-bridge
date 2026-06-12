@@ -2,7 +2,7 @@
 # File Name: bridge_execution_engine.py
 # Location: /src/control_core/
 # Subsystem: Unified Coordinated Propulsion & Steering Control Matrix
-
+from src.control_core.inertial_dead_reckoning import InertialDeadReckoning
 import math
 import numpy as np
 import time
@@ -55,6 +55,7 @@ class UnivacReplacementBridgeEngine:
             self.nav_mod = NAVMOD_Subsystem()
             self.trim_subroutine = AsymmetricRudderTrimSubroutine(vessel_profile)
             self.weapons_matrix = NavalWeaponsBalanceMatrix()
+            self.dr_engine = InertialDeadReckoning()
             self.subsystems_online = True
         except NameError:
             self.subsystems_online = False
