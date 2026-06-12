@@ -80,7 +80,13 @@ def bootstrap_system():
     try:
         while True:
             start_cycle_time = time.time()
-            
+
+            # Capture the raw text string directly off your physical RS-422 connection
+            raw_gun_bus_string = weapon_serial_hardware_wire.readline().decode('ascii', errors='ignore')
+
+            # Decode data and dynamically compute velocities inside the isolated thread block
+            gun_metrics = weapon_async_link.process_async_line(raw_gun_bus_string)
+
             # 1. Thread-safe ingestion of sensor telemetry and network targets
             active_targets = command_server.get_latest_targets()
             live_telemetry = router.get_synchronized_telemetry()
@@ -93,11 +99,15 @@ def bootstrap_system():
             # 3. Calculate dynamic asymmetric mass moment shifts & gyroscopic deck strains
             weapon_imbalance = weapons_matrix.evaluate_vessel_cross_coupling_impact(
                 ship_class=selected_ship_class,
-                weapon_azimuth_deg=live_gun_state['azimuth_deg'],
-                weapon_elevation_deg=live_gun_state['elevation_deg'],
-                az_rate=live_gun_state['azimuth_rate_rads'],
-                el_rate=live_gun_state['elevation_rate_rads']
+                weapon_azimuth_deg=gun_metrics['azimuth_deg'],
+                weapon_elevation_deg=gun_metrics['elevation_deg'],
+                az_rate=gun_metrics['azimuth_rate_rads'],
+                el_rate=gun_metrics['elevation_rate_rads']
             )
+
+            # Pipe the weapon's physical listing torque into the active roll tracking cache
+            # This keeps the Rudder Roll Stabilization (RRS) pre-compensated for gun shifts
+            live_telemetry['roll_angle_rad'] += math.radians(weapon_imbalance['induced_roll_list_angle_deg'])
             
             # 4. Inject weapon induced list adjustments straight into the active roll state
             # This forces the Rudder Roll Stabilization (RRS) matrix to pre-compensate for gun weight
