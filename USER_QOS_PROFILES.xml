@@ -1,64 +1,99 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<dds xmlns:xsi="http://w3.org"
-     xsi:noNamespaceSchemaLocation="http://rti.com">
+#include <iostream>
+#include <cstring>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <unistd.h>
+// Include DDS auto-generated headers (assumes OpenDDS/RTI environment) 
+#include "TacticalTrackTypeSupportImpl.h" 
 
-    <!-- QoS Library Deployment for Shipboard Tactical Network -->
-    <qos_library name="TacticalCombatLibrary">
+#define PORT 5005
+#define BUFFER_SIZE 16  // 4 words * 4 bytes per word = 16 bytes  
+
+// Helper to handle Endianness conversion from UNIVAC Big-Endian to x86 Little-Endian 
+uint32_t convert_big_endian_to_native(uint32_t value) {
+    return ntohl(value);
+}
+
+int main() {
+    // 1. Initialize System Socket     
+    int server_fd;
+    struct sockaddr_in address;
+    uint32_t network_buffer[4];
+    
+    if ((server_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+        std::cerr << "[ERR] Failed to create UDP socket." << std::endl;
+        return -1;
+    }
+    
+    std::memset(&address, 0, sizeof(address));
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY; // Listen on all network interfaces     
+    address.sin_port = htons(PORT);
+    
+    if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
+        std::cerr << "[ERR] Bind failed on port " << PORT << std::endl;
+        close(server_fd);
+        return -1;
+    }
+    
+    // 2. Initialize DDS Infrastructure      
+    auto participant = DDS::DomainParticipantFactory::get_instance()->create_participant(
+        0, PARTICIPANT_QOS_DEFAULT, nullptr, STATUS_MASK_NONE);
         
-        <!-- Profile optimized specifically for High-Priority Weapon/Target Tracks -->
-        <qos_profile name="HighPriorityTargetProfile" is_default_qos="false">
+    LegacyTrackTypeSupport_var ts = new LegacyTrackTypeSupportImpl();
+    ts->register_type(participant.in(), "");
+    
+    auto topic = participant->create_topic(
+        "Aegis_Legacy_Tracks", ts->get_type_name(), TOPIC_QOS_DEFAULT, nullptr, STATUS_MASK_NONE);
+        
+    auto publisher = participant->create_publisher(PUBLISHER_QOS_DEFAULT, nullptr, STATUS_MASK_NONE);
+    
+    // Load the specific XML profile from our file structure 
+    auto writer = publisher->create_datawriter_with_profile(
+        topic.in(), 
+        "TacticalCombatLibrary",     // Library Name matching XML     
+        "HighPriorityTargetProfile",  // Profile Name matching XML     
+        nullptr, 
+        STATUS_MASK_NONE);
+        
+    LegacyTrackDataWriter_var track_writer = LegacyTrackDataWriter::_narrow(writer.in());
+    
+    std::cout << "[INFO] Aegis Controller Driver Active. Listening on UDP Port " << PORT << "..." << std::endl;
+    
+    // 3. Real-Time Data Pipeline Loop     
+    while (true) {
+        struct sockaddr_in client_addr;
+        socklen_t addr_len = sizeof(client_addr);
+        
+        // Blocking read on the Ethernet switch input stream         
+        ssize_t bytes_received = recvfrom(server_fd, network_buffer, BUFFER_SIZE, 0,
+                                          (struct sockaddr*)&client_addr, &addr_len);
+                                          
+        if (bytes_received == BUFFER_SIZE) {
+            // Instantiate our DDS Topic Object             
+            LegacyTrack track_msg;
             
-            <!-- 1. RELIABILITY: Ensure packet delivery without long blocking delays -->
-            <reliability>
-                <kind>RELIABLE_RELIABILITY_QOS</kind>
-                <!-- Prevent the driver loop from blocking infinitely if the network congests -->
-                <max_blocking_time>
-                    <sec>0</sec>
-                    <nanosec>20000000</nanosec> <!-- 20 milliseconds max block -->
-                </max_blocking_time>
-            </reliability>
-
-            <!-- 2. HISTORY: Keep only the freshest track update per unique Target ID -->
-            <history>
-                <kind>KEEP_LAST_HISTORY_QOS</kind>
-                <depth>1</depth> <!-- Old range/bearing data is useless for live fire control -->
-            </history>
-
-            <!-- 3. DURABILITY: Do not waste bandwidth syncing past history to new consoles -->
-            <durability>
-                <kind>VOLATILE_DURABILITY_QOS</kind>
-            </durability>
-
-            <!-- 4. TRANSPORT PRIORITY: Map directly to Network Layer 3 QoS (DiffServ / DSCP) -->
-            <!-- Maps to DSCP 46 (Expedited Forwarding), forcing switches to route this packet first -->
-            <transport_priority>
-                <value>46</value> 
-            </transport_priority>
-
-            <!-- 5. DEADLINE: Raise an alarm if a target track stops reporting -->
-            <deadline>
-                <period>
-                    <sec>0</sec>
-                    <nanosec>100000000</nanosec> <!-- 100 milliseconds heartbeat deadline -->
-                </period>
-            </deadline>
-
-            <!-- 6. LIVELINESS: Automate hardware health monitoring for the legacy interface -->
-            <liveliness>
-                <kind>AUTOMATIC_LIVELINESS_QOS</kind>
-                <lease_duration>
-                    <sec>0</sec>
-                    <nanosec>300000000</nanosec> <!-- Declare hardware dead after 300ms of silence -->
-                </lease_duration>
-            </liveliness>
-
-            <!-- 7. RESOURCE LIMITS: Hard boundary allocations to guarantee deterministic memory usage -->
-            <resource_limits>
-                <max_samples>256</max_samples>
-                <max_instances>128</max_instances> <!-- Maximum simultaneous tracks tracked at once -->
-                <max_samples_per_instance>2</max_samples_per_instance>
-            </resource_limits>
-
-        </qos_profile>
-    </qos_library>
-</dds>
+            // Extract bytes and fix the Endianness shift from the UNIVAC architecture             
+            track_msg.track_id           = convert_big_endian_to_native(network_buffer[0]);
+            track_msg.target_range_yds   = convert_big_endian_to_native(network_buffer[1]);
+            track_msg.target_bearing_min = convert_big_endian_to_native(network_buffer[2]);
+            track_msg.target_altitude_ft = convert_big_endian_to_native(network_buffer[3]);
+            
+            // Zero-mask upper bits just in case of any 30-bit padding leaks from legacy registers             
+            track_msg.track_id &= 0x3FFFFFFF;
+            
+            // 4. Publish directly into the Aegis Combat System LAN             
+            DDS::ReturnCode_t ret = track_writer->write(track_msg, DDS::HANDLE_NIL);
+            
+            if (ret != DDS::RETCODE_OK) {
+                std::cerr << "[WARN] DDS Track Publish Failed." << std::endl;
+            }
+        } else {
+            std::cerr << "[WARN] Corrupted packet size received: " << bytes_received << " bytes." << std::endl;
+        }
+    }
+    
+    // Cleanup resources (unreachable in infinite loop execution)     
+    close(server_fd);
+    return 0;
+}
