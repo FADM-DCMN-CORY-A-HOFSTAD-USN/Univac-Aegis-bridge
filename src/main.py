@@ -29,6 +29,11 @@ from network_layer.hardware_watchdog import AsynchronousHardwareWatchdog
 
 from control_core.bilge_authority_router import BilgeControlAuthorityRouter
 from control_core.flag_changer_subroutine import AutomaticFlagChangerSubroutine
+from network_layer.flag_fault_logger import FlagHalyardFaultLogger
+
+# Bootstrap asynchronous flag halyard audit logging
+flag_logger = FlagHalyardFaultLogger(log_directory="logs", file_prefix="flag_halyard_audit")
+flag_logger.start_logger_services()
 
 # Initialize the automatic flag-changing matrix
 flag_manager = AutomaticFlagChangerSubroutine()
@@ -330,11 +335,19 @@ def bootstrap_system():
             # Append flag diagnostics metrics to your outbound network tracking packet structures
             actuator_commands['upstream_autonomy_telemetry']['Flag_Changer_Status'] = flag_actuation_commands
 
+            # ... Flag Changer Subroutine calculates parameters above ...
+            
+            # Inject data snapshot metrics straight into the memory queuing array (50Hz)
+            # This isolates winch metrics completely away from steering thread queues
+            flag_logger.capture_flag_event_snapshot(flag_actuation_commands)
+
+
             if sleep_window > 0:
                 time.sleep(sleep_window)
          
     except KeyboardInterrupt:
         print("\n[SHUTDOWN] Intercepted manual shutdown request. Suspending communication pipes...")
+        flag_logger.stop_logger_services() # Flush remaining rows and secure locks on disk
         bilge_logger.stop_logging_services() # Flush remaining rows and secure locks on disk
         mission_logger.stop_logging_services() # Flush queue and lock file on disk array
         compass_listener.stop_listening()
