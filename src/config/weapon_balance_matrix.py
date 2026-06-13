@@ -109,7 +109,14 @@ class NavalWeaponsBalanceMatrix:
         
         induced_roll_rad = math.asin(max(-0.2, min(0.2, total_heel_moment / denominator)))
         induced_roll_deg = math.degrees(induced_roll_rad)
-        
+        # Convert the native Radian output of the hydrostatic equation into Degrees
+        induced_roll_rads = roll_moment / (displacement_kg * 9.81 * gm_transverse)
+        induced_roll_list_angle_deg = math.degrees(induced_roll_rads)
+
+        return {
+            "induced_roll_list_angle_deg": round(induced_roll_list_angle_deg, 4),
+            "induced_yaw_moment_nm": round(yaw_moment, 1)
+        }
         return {
             "vessel_class": ship_class,
             "active_weapon_system": w_type,
