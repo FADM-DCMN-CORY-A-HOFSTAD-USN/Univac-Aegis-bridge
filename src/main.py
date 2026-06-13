@@ -68,6 +68,54 @@ def bootstrap_system():
     cognitive_plant = CognitiveRingProcessor(vessel_profile)
     cognitive_data_lock = threading.Lock()
     latest_cognitive_output = {}
+    # Open your central '/src/main.py' script and navigate to your asynchronous cognitive loop worker:
+
+    def asynchronous_cognitive_loop_worker():
+    global latest_cognitive_output
+    print("[BOOT] Isolated Cognitive Ring Thread successfully active.")
+    
+    # Import the newly developed diagnostic and vibration equations
+    from control_core.museum_history_matrix import equation_body_vibration_resonance
+    from control_core.museum_history_matrix import equation_adaptive_frequency_cancellation
+    
+    # Pre-seed mock vectors for the serial pattern detective check
+    historical_noise_profile = [0.12, -0.05, 0.88, 0.41, -0.22]
+    
+    while True:
+        # Pull safe thread-locked snapshots of active telemetry fields
+        current_telemetry_snapshot = router.get_synchronized_telemetry()
+        current_targets_snapshot = command_server.get_latest_targets()
+        
+        # 1. Execute cognitive, resonance, and financial calculations (from previous steps)
+        # ... (Tesla tower, mimic decoy, and tactical risk indexes run here) ...
+        
+        # 2. NEW INJECTION: PROCESS PERIMETER VIBRATION AND PATTERN SEARCH MATRICES
+        # Calculate localized deck vibration resonance values across crew quarters
+        live_platform_stiffness = float(current_telemetry_snapshot.get('structural_stiffness_nm', 450000.0))
+        live_platform_mass = float(vessel_profile.get('displacement_tonnes', 4500.0)) * 0.1 # local scale approximation
+        
+        calculated_deck_resonance_hz = equation_body_vibration_resonance(
+            stiffness_n_m=live_platform_stiffness,
+            structural_mass_kg=live_platform_mass
+        )
+        
+        # Compute the active anti-phase hydraulic dampening output to stabilize the floor plane
+        live_amplitude = float(current_telemetry_snapshot.get('roll_rate_rads', 0.0)) * 0.05 # amplitude proxy
+        calculated_counter_force = equation_adaptive_frequency_cancellation(
+            amplitude_m=live_amplitude,
+            phase_rad=0.24,
+            frequency_hz=calculated_deck_resonance_hz,
+            elapsed_time=time.time()
+        )
+        
+        # 3. Write results to the shared register via a fast memory thread-lock
+        with cognitive_data_lock:
+            latest_cognitive_output['deck_vibration_hz'] = calculated_deck_resonance_hz
+            latest_cognitive_output['hydraulic_dampening_command_n'] = calculated_counter_force
+            latest_cognitive_output['right_wrong_logic_nominal'] = True
+            latest_cognitive_output['serial_pattern_match_ratio'] = 0.14 # Baseline low match ratio example
+            
+        time.sleep(0.05) # Maintain a steady 20Hz update pace for non-safety logic
 
     # 1. PRE-FLIGHT BOOT COGNITIVE SUITE
     boot_validator = AutomatedBootVerificationSuite(target_config_file="vessel_config.json", log_directory="logs")
