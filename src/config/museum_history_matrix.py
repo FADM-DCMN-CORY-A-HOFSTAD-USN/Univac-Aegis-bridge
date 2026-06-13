@@ -616,3 +616,178 @@ def equation_hospital_pathogen_spread(contagious_count: int, rate: float) -> flo
 
 def equation_bunker_co2_scrubber(liters_co2: float, absorption_efficiency: float) -> float:
     return liters_co2 * (1.0 - absorption_efficiency)
+
+# File Name: museum_history_matrix_expanded.py
+# Location: /src/config/
+# Subsystem: Comprehensive Technical Subsystem Equations Array
+
+import math
+
+# 116. REFRIGERATION: Vapor-Compression Coefficient of Performance (COP)
+def equation_refrigeration_cop(temp_evap_k: float, temp_cond_k: float) -> float:
+    temp_delta = temp_cond_k - temp_evap_k
+    if temp_delta <= 0.05: return 99.9
+    return temp_evap_k / temp_delta
+
+# 117. VENT FAN: Centrifugal Blower Airflow Fan Shaft Power
+def equation_vent_fan_power(flow_rate_m3s: float, pressure_delta_pa: float, efficiency: float) -> float:
+    if efficiency <= 0.01: return flow_rate_m3s * pressure_delta_pa
+    return (flow_rate_m3s * pressure_delta_pa) / efficiency
+
+# 118. SEPTIC BIO-REACTOR: Dissolved Oxygen Volumetric Mass Transfer Rate
+def equation_septic_oxygen_transfer(kla_coef: float, sat_concentration: float, current_concentration: float) -> float:
+    return kla_coef * (sat_concentration - current_concentration)
+
+# 119. SEWER LADDER: Inductive Sensor Step-Pad Voltage Shift Profile
+def equation_ladder_sensor_voltage(r_fixed: float, coil_inductance_h: float, frequency_hz: float) -> float:
+    xl_reactance = 2.0 * math.pi * frequency_hz * coil_inductance_h
+    return 12.0 * (r_fixed / math.sqrt((r_fixed ** 2) + (xl_reactance ** 2)))
+
+# 120. TUNNEL BORING: Cutter-Head Face Hydrostatic Thrust Force
+def equation_tbm_face_thrust(tunnel_radius_m: float, ground_pressure_pa: float) -> float:
+    area = math.pi * (tunnel_radius_m ** 2)
+    return area * ground_pressure_pa
+
+# 121. INFILTRATION: Tactical Passage Branching Probability Model
+def equation_infiltration_route_weight(base_risk: float, proximity_to_guard_m: float) -> float:
+    if proximity_to_guard_m <= 1.0: return 100.0
+    return base_risk + (50.0 / (proximity_to_guard_m ** 2))
+
+# 122. MACMILLAN LOGISTICS: Ordnance Cargo Shelf-Life Degradation Exponential
+def equation_macmillan_ordnance_decay(days_stored: float, activation_constant: float) -> float:
+    return math.exp(-activation_constant * days_stored)
+
+# 123. OXIDATION STATE: Metal Liner Corrosion Rate Vector (Faraday's Law)
+def equation_oxidation_corrosion_rate(current_amps: float, molar_mass: float, valence: int) -> float:
+    faraday_constant = 96485.33
+    if valence <= 0: return 0.0
+    return (current_amps * molar_mass) / (valence * faraday_constant)
+
+# 124. SCOPE OSCILLOSCOPE: Phase-Locked Loop Sine Wave Voltage Curve
+def equation_scope_sine_voltage(amplitude_v: float, frequency_hz: float, time_sec: float, phase_rad: float) -> float:
+    return amplitude_v * math.sin(2.0 * math.pi * frequency_hz * time_sec + phase_rad)
+
+# 125. SURVEILLANCE: Camera Frame Optical Matrix Luminance Factor
+def equation_surveillance_luminance(red: int, green: int, blue: int) -> float:
+    return 0.299 * red + 0.587 * green + 0.114 * blue
+
+# 126. HUMAN BEHAVIOR: Sonar Operator Target Tracking Attentiveness Index
+def equation_behavior_attention_level(hours_on_watch: float, targets_count: int) -> float:
+    base = 1.0 / (1.0 + math.exp(0.4 * (hours_on_watch - 4.0)))
+    return max(0.05, base - 0.02 * targets_count)
+
+# 127. CRISP PARITY: Standard Hamming Code Bit Parity Register Block
+def equation_crisp_parity_check(data_word_30bit: int, check_mask: int) -> int:
+    bits = data_word_30bit & check_mask
+    parity = 0
+    while bits > 0:
+        parity ^= (bits & 1)
+        bits >>= 1
+    return parity
+
+# 128. SHOWER SHIFT: Mixing Valve Fluid Flow Temperature Target
+def equation_shower_mix_temp(vol_hot: float, temp_hot: float, vol_cold: float, temp_cold: float) -> float:
+    total_vol = vol_hot + vol_cold
+    if total_vol <= 0.01: return temp_cold
+    return ((vol_hot * temp_hot) + (vol_cold * temp_cold)) / total_vol
+
+# 129. SCENT GAS: Chromatography Peak Concentration Scaling
+def equation_scent_chromatography_peak(amplitude: float, retention_time: float, current_time: float) -> float:
+    variance = 2.5
+    if variance <= 0.1: return 0.0
+    return amplitude * math.exp(-((current_time - retention_time) ** 2) / (2.0 * variance))
+
+# 130. COMPOST RECYCLE: Bacterial Heat Generation Matrix
+def equation_compost_heat_generation(moisture_fraction: float, carbon_nitrogen_ratio: float) -> float:
+    if carbon_nitrogen_ratio <= 1.0: return 0.0
+    return 45.0 * math.sin(math.pi * moisture_fraction) * (30.0 / carbon_nitrogen_ratio)
+
+# 131. EXERCISE PT: Human Oxygen Respiration Ventilation Output
+def equation_exercise_metabolic_vo2(work_watts: float, body_mass_kg: float) -> float:
+    if body_mass_kg <= 1.0: return 0.0
+    return ((10.8 * work_watts) / body_mass_kg) + 7.0
+
+# 132. PYCNOGONIDA ANTE: Multi-Legged Antenna Slew Velocity Constraint
+def equation_pycnogonida_leg_displacement(base_angle_rad: float, leg_length_m: float) -> float:
+    return leg_length_m * math.cos(base_angle_rad)
+
+# 133. PHYSICS ENGINE: Dual Rigid-Body Kinetic Impact Coefficient
+def equation_physics_collision_velocity(mass_a: float, vel_a: float, mass_b: float, vel_b: float) -> float:
+    total_mass = mass_a + mass_b
+    if total_mass <= 0.1: return 0.0
+    return ((mass_a * vel_a) + (mass_b * vel_b)) / total_mass
+
+# 134. PLANET ROTATION: Coriolis Lateral Drift Acceleration Vector
+def equation_planet_rotation_coriolis(velocity_ms: float, latitude_deg: float) -> float:
+    omega_earth = 7.292115e-5 # Earth angular velocity rad/s
+    return 2.0 * omega_earth * velocity_ms * math.sin(math.radians(latitude_deg))
+
+# 135. EGYPTIAN BAL: Heavy Stone Sled Kinetic Friction Force
+def equation_egyptian_sled_friction(block_mass_kg: float, lubricant_factor: float) -> float:
+    normal_force = block_mass_kg * 9.81
+    # Wet sand/silt dynamic friction index
+    coefficient = 0.35 / (1.0 + lubricant_factor)
+    return normal_force * coefficient
+
+# 136. SEWER SUMP: Underground Hydrogen Sulfide Gas Air Concentration
+def equation_sewer_gas_ppm(source_generation_rate: float, fan_airflow_m3s: float) -> float:
+    if fan_airflow_m3s <= 0.05: return source_generation_rate * 20.0
+    return source_generation_rate / fan_airflow_m3s
+
+# 137. DRAIN FIELD: Hydraulic Soil Siphon Percolation Flux
+def equation_drain_field_flux(head_height_m: float, hydraulic_conductivity: float) -> float:
+    return hydraulic_conductivity * head_height_m
+
+# 138. RECALIBRATION: Analog Sensor Voltage Offset Deflection Trim
+def equation_recalibration_trim(raw_voltage: float, baseline_ref: float, drift_slope: float) -> float:
+    return (raw_voltage - baseline_ref) - drift_slope
+
+# 139. FOOD SERVICE: Recipe Inventory Conversion Weight Scaling
+def equation_galley_ration_demand(crew_count: int, baseline_ounce_per_man: float) -> float:
+    return (float(crew_count) * baseline_ounce_per_man) / 16.0
+
+# 140. MASS HYGIENE: Decontamination Chamber Deluge Spray Pressure
+def equation_hygiene_spray_flow(nozzle_area_m2: float, line_pressure_pa: float) -> float:
+    rho_water = 1000.0
+    discharge_coefficient = 0.62
+    return discharge_coefficient * nozzle_area_m2 * math.sqrt(2.0 * line_pressure_pa / rho_water)
+
+# File Name: museum_history_matrix_final.py
+# Location: /src/config/
+# Subsystem: Comprehensive Global Register Physics & Transport Equations Array
+
+import math
+
+# 158. STRUCTURAL VECTOR: Crane Overturning Tipping Moment Threshold
+def equation_crane_tipping_threshold(base_weight_n: float, track_width_m: float, counterweight_n: float, cw_arm_m: float) -> float:
+    # Calculates the maximum allowable overturning moment before structural tipping occurs
+    return (base_weight_n * (track_width_m / 2.0)) + (counterweight_n * cw_arm_m)
+
+# 163. OROGRAPHIC WIND: Mountain Shear Gradient Profile
+def equation_mountain_wind_shear(velocity_baseline: float, altitude_m: float, roughness_length: float) -> float:
+    if roughness_length <= 0.0 or altitude_m <= roughness_length: return velocity_baseline
+    # Standard logarithmic wind profile model used in aviation knowledge tracking
+    return velocity_baseline * (math.log(altitude_m / roughness_length) / math.log(10.0 / roughness_length))
+
+# 168. APACHE LEAD: Fire-Control Kinematic Target Azimuth Lead Angle
+def equation_apache_target_lead(range_to_tgt_m: float, tgt_cross_velocity_ms: float, muzzle_velocity_ms: float) -> float:
+    time_of_flight = range_to_tgt_m / max(1.0, muzzle_velocity_ms)
+    lead_distance = tgt_cross_velocity_ms * time_of_flight
+    return math.atan2(lead_distance, range_to_tgt_m)
+
+# 183. ENERGY ACCUMULATOR: Pulsed-Power Capacitor Energy Storage
+def equation_saiya_capacitor_energy(capacitance_farads: float, charging_voltage: float) -> float:
+    return 0.5 * capacitance_farads * (charging_voltage ** 2)
+
+# 190. PINION GEAR: Mechanical Gear Teeth Bending Stress Limit (Lewis Equation)
+def equation_pinion_gear_stress(tangential_force_n: float, diametral_pitch: float, face_width_m: float, form_factor_y: float) -> float:
+    denom = face_width_m * form_factor_y * (1.0 / max(1.0, diametral_pitch))
+    if denom <= 0.001: return tangential_force_n
+    return tangential_force_n / denom
+
+# 200. HIGH-ENERGY RESOLVER: Radiation Shielding Linear Attenuation Transport
+# A civil nuclear facility reference tracking gamma/neutron intensity reductions through shielding walls
+def equation_radiation_transport_attenuation(initial_intensity: float, shielding_thickness_m: float, linear_atten_coef: float) -> float:
+    if initial_intensity <= 0.0 or shielding_thickness_m <= 0.0: return initial_intensity
+    # Standard textbook exponential attenuation law: I = I_0 * e^(-mu * x)
+    return initial_intensity * math.exp(-linear_atten_coef * shielding_thickness_m)
