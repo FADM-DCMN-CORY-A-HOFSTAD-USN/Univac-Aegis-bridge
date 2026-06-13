@@ -358,3 +358,80 @@ def equation_radio_antenna_impedance(inductance_h: float, capacitance_f: float) 
     denom = 2.0 * math.pi * math.sqrt(inductance_h * capacitance_f)
     if denom <= 0.0: return 0.0
     return 1.0 / denom
+
+# File Name: museum_history_matrix_part6.py
+# Location: /src/config/
+# Subsystem: Tactical, Industrial, and Theoretical Museum Node Mathematical Equations Array
+
+import math
+
+# 61. AEGIS: SPY-1 Radar Phased Array Beam Steering Delay Matrix
+# Calculates the microsecond phase shift (delta_phi) required to steer a radar beam without moving the antenna
+def equation_aegis_phase_steer(element_spacing_m: float, beam_angle_rad: float, wavelength_m: float) -> float:
+    return (2.0 * math.pi * element_spacing_m * math.sin(beam_angle_rad)) / wavelength_m
+
+# 62. AC DELCO: Gyroscopic Platform Gimbal Nutation Torque
+def equation_delco_gyro_torque(spin_inertia: float, precession_rads: float, spin_rate_rads: float) -> float:
+    return spin_inertia * precession_rads * spin_rate_rads
+
+# 63. DELPHI: Common-Rail Fuel Injector Hydrodynamic Valve Velocity
+def equation_delphi_injector_velocity(rail_pressure_pascal: float, air_density: float) -> float:
+    if air_density <= 0.0: return 0.0
+    return math.sqrt((2.0 * rail_pressure_pascal) / air_density)
+
+# 64. GE TURBINE: Steam Velocity Flow Kinetic Energy Drop
+def equation_ge_turbine_energy(steam_mass_kg: float, inlet_v_ms: float, outlet_v_ms: float) -> float:
+    return 0.5 * steam_mass_kg * ((inlet_v_ms ** 2) - (outlet_v_ms ** 2))
+
+# 65. CHEVROLET: Multi-Axle Heavy Transport Torque Distribution Limit
+def equation_chevrolet_axle_stress(torque_nm: float, wheel_radius_m: float, number_of_axles: int) -> float:
+    if number_of_axles <= 0: return torque_nm
+    return torque_nm / (wheel_radius_m * number_of_axles)
+
+# 66. FORD INSTRUMENT: Mechanical Integrator Disc-and-Roller Tracking Displacement
+def equation_ford_mechanical_integrator(disc_radius_m: float, roller_position_m: float, rotational_input_rad: float) -> float:
+    if disc_radius_m <= 0.001: return 0.0
+    return (roller_position_m / disc_radius_m) * rotational_input_rad
+
+# 67. HONDA OUTBOARD: Propeller Hydrofoil Thrust Coefficient
+def equation_honda_prop_thrust(thrust_newtons: float, fluid_density: float, rpm: float, diameter_m: float) -> float:
+    rps = rpm / 60.0
+    denom = fluid_density * (rps ** 2) * (diameter_m ** 4)
+    if denom <= 0.001: return 0.0
+    return thrust_newtons / denom
+
+# 68. AIRLIFT: Strategic Fuel Burn Transport Range (Breguet Range Equation)
+def equation_airlift_flight_range(lift_to_drag: float, specific_fuel_consumption: float, w_initial: float, w_final: float) -> float:
+    if w_final <= 0.1 or specific_fuel_consumption <= 0.0: return 0.0
+    return (lift_to_drag / specific_fuel_consumption) * math.log(w_initial / w_final)
+
+# 69. BUS ROUTING: Logistic Routing Node Connectivity Weight (Dijkstra Optimization Base)
+def equation_bus_route_weight(distance_miles: float, stops_count: int, stop_delay_sec: float) -> float:
+    return distance_miles + ((stops_count * stop_delay_sec) / 3600.0)
+
+# 70. TELEPORTATION: Quantum Teleportation State Fidelity Density Matrix Index
+def equation_quantum_teleportation_fidelity(state_vector_dot_product: float) -> float:
+    return max(0.0, min(1.0, (state_vector_dot_product ** 2)))
+
+# 71. ANTIGRAVITY: Localized Gravimetric Flux Anomaly Shielding Force
+def equation_antigravity_flux_deflection(mass_kg: float, charge_coulombs: float, magnetic_field_tesla: float) -> float:
+    return mass_kg * 9.81 - (charge_coulombs * 10.0 * magnetic_field_tesla)
+
+# 72. GASWORKS PARK: Pressure Vessel Hydrocarbon Gas Expansion Volume
+def equation_gasworks_steam_expansion(p1_pascal: float, v1_m3: float, p2_pascal: float) -> float:
+    if p2_pascal <= 0.1: return v1_m3
+    return (p1_pascal * v1_m3) / p2_pascal
+
+# 73. PENTAGON COMM: Teletype Buffer Queue Saturation Limit (Erlang-B Blocking Probability)
+def equation_pentagon_comm_blocking(traffic_intensity_erlangs: float, lines_available: int) -> float:
+    numerator = (traffic_intensity_erlangs ** lines_available) / math.factorial(lines_available)
+    denominator = sum([(traffic_intensity_erlangs ** k) / math.factorial(k) for k in range(lines_available + 1)])
+    return numerator / denominator
+
+# 74. WHITE HOUSE: Cryptographic One-Time Pad Character XOR Text Vector Converter
+def equation_white_house_crypto_xor(input_char_ascii: int, pad_key_ascii: int) -> int:
+    return input_char_ascii ^ pad_key_ascii
+
+# 75. DEEP SPACE: Optical Laser Communication Divergence Beam Diameter
+def equation_deep_space_laser_beam(distance_meters: float, initial_diameter_m: float, divergence_rad: float) -> float:
+    return initial_diameter_m + (distance_meters * divergence_rad)
