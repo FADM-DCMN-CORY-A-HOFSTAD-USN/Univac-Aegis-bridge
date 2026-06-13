@@ -121,6 +121,20 @@ Checksum = XOR sum of ord(char) for all characters in the payload body.
 * Example Binary Frame:
   $PUNVCFAC,-50.0,1,0,1,1,30.0,0*3A\r\n
 
+  ## 3.J. Centralized Diagnostic & Biomechanical Maintenance Command Set ($PUNVCDIA)
+* Source Subsystem: Diagnostic Maintenance Subroutines (museum_history_matrix_diagnostics.py)
+* Target Hardware Link: Central Hull Monitoring Hub / Active Hydraulic Dampening Platform PLC
+* Transmission Cadence: 50Hz continuous streaming arrays or event-driven upon fault trips.
+* Sentence Template:
+  $PUNVCDIA,[Resonance_Hz],[Damp_Force],[Pattern_Ratio],[Logic_Ok]*[CS]\r\n
+* Payload Fields Specification:
+  * Resonance_Hz: Float, 2 decimal places. Measured low-frequency structural deck resonance profile. Range: 0.00 to 150.00 Hz.
+  * Damp_Force: Float, 1 decimal place. Dispatched active hydraulic dampening counter-force command (Newtons). Range: -5000.0 to 50000.0.
+  * Pattern_Ratio: Float, 3 decimal places. Serial bus line-noise pattern correlation matching index. Range: 0.000 to 1.000.
+  * Logic_Ok: Integer, 1-bit. Right/Wrong logical decider health validation gate. 1 = Pass/Nominal, 0 = Fault Block.
+* Example Binary Frame:
+  $PUNVCDIA,4.12,-1245.5,0.014,1*2F\r\n
+
 ## 4. High-Speed Ordnance Bus Commands (Electronic Warfare)
 
 ### A. Asymmetric Jammer Suppression Command Set ($PUNVCEW)
