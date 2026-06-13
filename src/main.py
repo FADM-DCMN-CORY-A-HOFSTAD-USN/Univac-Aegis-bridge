@@ -342,6 +342,19 @@ def bootstrap_system():
             # This isolates winch metrics completely away from steering thread queues
             flag_logger.capture_flag_event_snapshot(flag_actuation_commands)
 
+            # Extract the active flag changer metrics packet from your loop commands array
+            flag_telemetry = actuator_commands.get('upstream_autonomy_telemetry', {}).get('Flag_Changer_Status', {})
+
+            # Read incoming hardware fault registers returned by your feedback receiver node
+            # If the winch motor PLC reports a failure bit, update the display buffer status:
+            with app.data_lock:
+            if "WINCH_MOTOR_OVERLOAD" in live_telemetry.get('fault_flags', []):
+            app.system_telemetry['flag_winch_fault_active'] = True
+            app.system_telemetry['active_flag_state'] = "FAULT_JAM"
+            else:
+             app.system_telemetry['active_flag_state'] = flag_telemetry.get('active_flag_state_string', 'ENSIGN')
+            app.system_telemetry['halyard_position_pct'] = flag_telemetry.get('commanded_halyard_motor_position_pct', 0.0)
+
 
             if sleep_window > 0:
                 time.sleep(sleep_window)
