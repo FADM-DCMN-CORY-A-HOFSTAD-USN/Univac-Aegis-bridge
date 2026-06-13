@@ -791,3 +791,39 @@ def equation_radiation_transport_attenuation(initial_intensity: float, shielding
     if initial_intensity <= 0.0 or shielding_thickness_m <= 0.0: return initial_intensity
     # Standard textbook exponential attenuation law: I = I_0 * e^(-mu * x)
     return initial_intensity * math.exp(-linear_atten_coef * shielding_thickness_m)
+
+# File Name: museum_history_matrix_predictive.py
+# Location: /src/config/
+# Subsystem: Actuarial, Financial, and Planetary Prediction Equations Array
+
+import math
+
+# 231. MORTGAGE: Capital Fixed-Rate Amortization Monthly Payment Formula
+def equation_mortgage_amortization(principal: float, annual_rate: float, total_months: int) -> float:
+    monthly_rate = annual_rate / 12.0
+    if monthly_rate <= 0.0:
+        return principal / max(1, total_months)
+    # Standard financial amortization formula: M = P * [r(1+r)^n] / [(1+r)^n - 1]
+    denom = ((1.0 + monthly_rate) ** total_months) - 1.0
+    if denom <= 0.001: return principal
+    return principal * (monthly_rate * ((1.0 + monthly_rate) ** total_months)) / denom
+
+# 232. EXPECTANCY: Gompertz-Makeham Actuarial Mortality Hazard Law
+def equation_actuarial_life_expectancy(current_age: float, baseline_hazard_a: float, age_slope_b: float) -> float:
+    # Calculates the instantaneous mortality hazard rate: h(x) = A + B * e^(C * x)
+    # C represents the constant exponential aging coefficient (nominally ~0.08)
+    aging_coefficient_c = 0.085
+    return baseline_hazard_a + age_slope_b * math.exp(aging_coefficient_c * current_age)
+
+# 235. FORECAST: Double Exponential Smoothing Trend Component (Holt-Winters Base)
+def equation_time_series_forecast_trend(alpha: float, beta: float, current_val: float, prev_level: float, prev_trend: float) -> float:
+    current_level = alpha * current_val + (1.0 - alpha) * (prev_level + prev_trend)
+    return beta * (current_level - prev_level) + (1.0 - beta) * prev_trend
+
+# 238. RISK: Quantitative Combined Multi-Variable Tactical Threat Index
+def equation_tactical_risk_index(range_m: float, closing_speed_ms: float, jamming_intensity_db: float) -> float:
+    time_to_impact = range_m / max(0.1, closing_speed_ms)
+    if time_to_impact <= 0.01: return 100.0
+    # Higher jamming and faster closing speeds exponentially increase the calculated risk score
+    raw_score = (50.0 / time_to_impact) + (1.5 * jamming_intensity_db)
+    return 1.0 / (1.0 + math.exp(-0.05 * raw_score)) # Normalized between 0.0 and 1.0
