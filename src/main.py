@@ -34,6 +34,15 @@ from network_layer.shore_weapon_serializer import ShoreWeaponSystemSerializer # 
 from network_layer.data_logger_node import AutomatedMissionDataLogger
 from network_layer.flag_fault_logger import FlagHalyardFaultLogger
 from network_layer.bilge_audit_logger import BilgeEnvironmentalAuditLogger
+from network_layer.univac_architecture_hal import UnivacArchitectureHAL
+
+# Boot the Dynamic Multi-Model Hardware Abstraction Layer
+univac_hal = UnivacArchitectureHAL()
+
+# Select active hardware profile for the current voyage
+# Target Catalog Options: '1219', 'AN/UYK-43', 'AN/UYK-20', 'AN/AYK-14', '490', '494', '1107', '1108'
+target_computer_profile = 'AN/UYK-43' 
+univac_hal.clear_interlocks_for_model(target_computer_profile)
 
 # ------------------------------------------------------------------------------
 # ASYNCHRONOUS TRANSMISSION QUEUE (9600-Baud Trap Resolution)
