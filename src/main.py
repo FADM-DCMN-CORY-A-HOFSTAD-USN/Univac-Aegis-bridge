@@ -8,6 +8,7 @@ import math
 import sys
 from config.boot_verification_suite import AutomatedBootVerificationSuite
 from network_layer.hardware_watchdog import AsynchronousHardwareWatchdog
+from config.boot_verification_suite import AutomatedBootVerificationSuite
 
 # Core Subsystem Imports
 from config.config_manager import VesselConfigManager
@@ -68,7 +69,7 @@ def bootstrap_system():
     # ──────────────────────────────────────────────────────────────────────────
     # CRITICAL INJECTION: RUN AUTOMATED PRE-FLIGHT BOOT COGNITIVE SUITE
     # ──────────────────────────────────────────────────────────────────────────
-    boot_validator = AutomatedBootVerificationSuite(target_config_file="vessel_config.json")
+    boot_validator = AutomatedBootVerificationSuite(target_config_file="vessel_config.json", log_directory="logs")
     if not boot_validator.execute_full_suite():
         print("[CRITICAL_BOOT_FAIL] Safety validations broke. Aborting startup to protect actuators.")
         sys.exit(1) # Kill the application process immediately before opening network lines
