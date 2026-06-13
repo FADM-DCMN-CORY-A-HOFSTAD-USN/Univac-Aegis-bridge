@@ -32,6 +32,9 @@ class AutomatedBootVerificationSuite:
         # Append inside stage 3 of boot_verification_suite.py to confirm boundary validation
         assert self.equation_rail_braking_force(50000.0, 10.0, 50.0) == 50000.0
         assert self.equation_space_command_radar_range(0.002) == 299792.458 * 1000.0 / 2.0
+        # Append inside stage 3 of boot_verification_suite.py:
+        elapsed, y2k_trip = self.equation_y2k_time_delta(99, 0)
+        assert y2k_trip == True  # Confirms the Y2K fault emulator catches the rollover error
         # Append inside stage 3 of boot_verification_suite.py to confirm boundary validation
         assert self.equation_aegis_phase_steer(0.15, 0.5, 0.03) > 0.0
         assert self.equation_white_house_crypto_xor(65, 12) == 73 # Asserts 'A' XOR 12 returns 73
