@@ -165,6 +165,20 @@ Checksum = XOR sum of ord(char) for all characters in the payload body.
 * Example Binary Frame:
   $PUNVCTRQ,3.1415,24500.5,0.00612,452100.0,1*1A\r\n
 
+  ## 3.M. Centralized Optoelectronic Hexadecimal Spectrum Command Set ($PUNVCHEX)
+* Source Subsystem: High-Speed Hexadecimal Digital Crest & Trough Analog Spectrum Engine (hex_spectrum_modulator.py)
+* Target Hardware Link: Central Analog Interface Unit / Base Signal Matrix Controller PLC
+* Transmission Cadence: 50Hz continuous streaming arrays or event-driven upon signal crest trips.
+* Sentence Template:
+  $PUNVCHEX,[Hex_Snippet],[Voltage_Out],[Flux_Lumen],[Crest_Trip]*[CS]\r\n
+* Payload Fields Specification:
+  * Hex_Snippet: String. The 4-bit token mapping the active digital crest or trough level (0x0 to 0xF).
+  * Voltage_Out: Float, 3 decimal places. Quantized electrical potential output value (Volts). Range: 0.000 to 8.000.
+  * Flux_Lumen: Float, 2 decimal places. Real-time parsed optoelectronic LED photon light flux measurement. Range: 0.00 to 100.00.
+  * Crest_Trip: Integer, 1-bit. Peak signal crest saturation interlock indicator. 1 = Active Peak, 0 = Nominal.
+* Example Binary Frame:
+  $PUNVCHEX,0x7,1.867,52.40,0*3C\r\n
+
 ## 4. High-Speed Ordnance Bus Commands (Electronic Warfare)
 
 ### A. Asymmetric Jammer Suppression Command Set ($PUNVCEW)
