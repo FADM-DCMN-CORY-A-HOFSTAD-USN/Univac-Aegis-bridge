@@ -26,7 +26,9 @@ class InertialDeadReckoning:
         # Convert meter displacement to latitude/longitude radians
         delta_lat = delta_north / self.R_earth
         # Longitude scaling depends on the current latitude (lines converge at poles)
-        delta_lon = delta_east / (self.R_earth * math.cos(current_lat))
+        # Prevent ZeroDivisionError singularity at the geographic poles
+        cos_lat = max(0.0001, math.cos(current_lat))
+        delta_lon = delta_east / (self.R_earth * cos_lat)
         
         new_lat = current_lat + delta_lat
         new_lon = current_lon + delta_lon
