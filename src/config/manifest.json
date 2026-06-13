@@ -55,9 +55,20 @@
                 "data_bits": 8,
                 "parity": "NONE",
                 "stop_bits": 1,
-                "protocol_standard": "Proprietary Valve/Winch Loop ($PUNVCBLG, $PUNVCFLG, $PUNVCANC, $PUNVCFAC)",
+                "protocol_standard": "Proprietary Valve/Winch/Facility Loop ($PUNVCBLG, $PUNVCFLG, $PUNVCANC, $PUNVCFAC, $PUNVCFAC)",
                 "watchdog_id": "MAIN_CORE_MATH"
+            },
+            "security_compliance_bus": {
+                "linux_handle": "/dev/ttyUSB5",
+                "windows_handle": "COM8",
+                "baud_rate": 19200,
+                "data_bits": 8,
+                "parity": "NONE",
+                "stop_bits": 1,
+                "protocol_standard": "Proprietary Security/Anti-Theft Matrix ($PUNVCDIA)",
+                "watchdog_id": "NMEA_SERIAL_IN"
             }
+
         }
     },
     "network_socket_topology": {
