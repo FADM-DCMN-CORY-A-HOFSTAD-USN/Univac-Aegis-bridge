@@ -51,12 +51,22 @@
             "machinery_auxiliaries_bus": {
                 "linux_handle": "/dev/ttyUSB4",
                 "windows_handle": "COM7",
-                "baud_rate": 9600,
+                 "baud_rate": 9600,
                 "data_bits": 8,
                 "parity": "NONE",
                 "stop_bits": 1,
-                "protocol_standard": "Proprietary Valve/Winch/Facility Loop ($PUNVCBLG, $PUNVCFLG, $PUNVCANC, $PUNVCFAC, $PUNVCFAC)",
+                "protocol_standard": "Proprietary Valve/Winch/Facility Loop ($PUNVCBLG, $PUNVCFLG, $PUNVCANC, $PUNVCFAC, $PUNVCUTL)",
                 "watchdog_id": "MAIN_CORE_MATH"
+            },
+            "industrial_plc_bus": {
+                "linux_handle": "/dev/ttyUSB6",
+                "windows_handle": "COM9",
+                "baud_rate": 19200,
+                "data_bits": 8,
+                "parity": "NONE",
+                "stop_bits": 1,
+                "protocol_standard": "Proprietary Discrete 24V PLC Matrix ($PUNVCDIA)",
+                "watchdog_id": "NMEA_SERIAL_IN"
             },
             "security_compliance_bus": {
                 "linux_handle": "/dev/ttyUSB5",
