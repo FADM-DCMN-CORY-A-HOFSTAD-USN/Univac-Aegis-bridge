@@ -215,6 +215,28 @@ def bootstrap_system():
             anchor_packet = f"${anchor_payload}*{anchor_cs:02X}\r\n".encode('ascii')
             tx_queue.put_nowait((anchor_packet, weapon_serial_hardware_wire))
 
+            # ... Core navigation laws and asymmetric rudder trim loops execute above ...
+
+            # Read the pre-calculated metrics from the asynchronous memory lock
+            with cognitive_data_lock:
+                active_cog_metrics = latest_cognitive_output.copy()
+
+            # If the legal matrix flags a boundary warning, automatically cap speed parameters
+            if active_cog_metrics.get('legal_boundary_alert_active', False):
+                actuator_commands['active_rpm_cap'] = min(actuator_commands['active_rpm_cap'], 150.0)
+                
+            # Pass Tesla tower and electronic decoy variables down to the hardware serial ports
+            # Replace 'machinery_bus_serial_port' with your active physical port object handle
+            if active_cog_metrics:
+                tesla_power = active_cog_metrics.get('tesla_radiated_power_watts', 0.0)
+                decoy_phase = active_cog_metrics.get('mimic_decoy_phase_shift_rad', 0.0)
+                
+                # Append metrics directly to the outbound network monitoring package
+                actuator_commands['upstream_autonomy_telemetry']['Tesla_Resonance_Metrics'] = active_cog_metrics
+                
+            # Poke your safety hardware watchdog to confirm the main loop is running smoothly
+            watchdog.poke_watchdog('MAIN_CORE_MATH')
+
             # 2. Bilge Authority Router
             requested_mode = active_targets.get('requested_authority_mode')
             if requested_mode:
