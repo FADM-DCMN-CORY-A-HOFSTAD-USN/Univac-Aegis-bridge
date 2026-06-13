@@ -35,6 +35,10 @@ class AutomatedBootVerificationSuite:
         # Append inside stage 3 of boot_verification_suite.py to confirm boundary validation
         assert self.equation_aegis_phase_steer(0.15, 0.5, 0.03) > 0.0
         assert self.equation_white_house_crypto_xor(65, 12) == 73 # Asserts 'A' XOR 12 returns 73
+        # Append inside stage 3 of boot_verification_suite.py to validate the new hardware profiles:
+        assert self.equation_battleship_synchro_resolver(90.0, math.radians(45.0), 0.0) == 90.0 * math.sin(math.radians(45.0))
+        assert self.equation_qualcomm_cdma_gain(1228800.0, 9600.0) == 10.0 * math.log10(128.0)
+
 
 
     def verify_cryptographic_ledger_integrity(self) -> Tuple[bool, List[str]]:
