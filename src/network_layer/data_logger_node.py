@@ -49,6 +49,7 @@ class AutomatedMissionDataLogger:
                 writer = csv.writer(f)
                 writer.writerow(self.csv_headers)
             print(f"[LOGGER] New mission telemetry spreadsheet initialized at: {self.log_file_path}")
+            watchdog.log_write_success('MISSION_TELEMETRY', self.log_queue.qsize())
         except IOError as e:
             print(f"[LOGGER_ERROR] Severe storage array write restriction caught during header build: {e}")
 
@@ -102,6 +103,7 @@ class AutomatedMissionDataLogger:
                 with open(self.log_file_path, mode='a', newline='') as f:
                     writer = csv.writer(f)
                     writer.writerow(row_data)
+                    watchdog.log_write_success('MISSION_TELEMETRY', self.log_queue.qsize())
                     
                 self.log_queue.task_done()
             except queue.Empty:
