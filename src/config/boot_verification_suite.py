@@ -25,6 +25,10 @@ class AutomatedBootVerificationSuite:
             "mission_telemetry",    # Core weapon ring and heading compass logger
             "shore_facility_audit"  # NEW: Shore facilities utilities and crane infrastructure log
         ]
+        
+        # Append inside stage 3 of boot_verification_suite.py to confirm boundary validation
+        assert self.equation_propellant_mixer_torque(1.2, 5.0, 0.4) > 0.0
+        assert self.equation_comm_packet_latency(10.0, 15.0) == 0.2
 
     def verify_cryptographic_ledger_integrity(self) -> Tuple[bool, List[str]]:
         """
