@@ -7,26 +7,38 @@ from numba import njit
 
 @njit(fastmath=True)
 def calculate_field_distortion(mass_matrix: np.ndarray, spin_rate: float) -> float:
+
+    """ Numba-optimized FastMath logic replacing slow runtime float division """
+
     if spin_rate == 0.0:
         return 0.0
     return np.sum(mass_matrix) * (9.81 / spin_rate)
 
 class AntigravityAegisBridge:
+
+    """ Asynchronous bridge for quantum and kinematic telemetry """
+
     def __init__(self, aegis_url: str):
         self.aegis_url = aegis_url
         self.session = None
         self.node_id = "Antigravity-Drive-Alpha"
-        self.uplink_authorized = False
 
     async def initialize(self):
+        """ Instantiates the asynchronous HTTP session """
         self.session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=2.0))
 
+        self.uplink_authorized = False
+
     async def shutdown(self):
+
         if not self.session:
             return
         await self.session.close()
 
     def determine_severity(self, distortion_metric: float) -> tuple:
+
+        """ Severity routing logic matrix """
+
         if distortion_metric > 15000.0:
             return 9, "CRITICAL_GRAVITY_SHEAR"
         if distortion_metric > 8000.0:
@@ -34,8 +46,7 @@ class AntigravityAegisBridge:
         return 0, "NOMINAL_FIELD_STATE"
 
     async def dispatch_telemetry(self, mass_array: np.ndarray, spin_rate: float, power_draw: float):
-        if not self.session:
-            return
+
         if not self.uplink_authorized:
             return
 
