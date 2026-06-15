@@ -129,6 +129,32 @@ class AutomatedBootVerificationSuite:
             print(">>> CRITICAL STATUS: BOOT BLOCKED. SHORE BASE OR SHIP TRAIL COMPROMISED. <<<")
             print(f">>> DETECTED COMPLIANCE ERRORS: {faults}\n")
             return False
+    def run_stage_6_network_identity_manifest_test(self) -> bool:
+        """STAGE 6 CHECK: Validates structural schema limits of the tactical OUI registry entries."""
+        print("[TEST_6] Verifying Manifest Tactical Network OUI Identity Map Schema...")
+        try:
+            with open(self.manifest_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                identity_matrix = data.get("tactical_network_identity_matrix", {})
+                oui_registry = identity_matrix.get("class_specific_oui_registry", {})
+                
+                # Assert crucial class-specific OUI prefixes exist and are formatted correctly
+                required_classes = ["early_aegis_cruiser", "early_aegis_destroyer", "enterprise_carrier"]
+                for cls in required_classes:
+                    if cls not in oui_registry:
+                        print(f" -> FAIL: Missing required hull network identity profile block: '{cls}'")
+                        return False
+                        
+                    prefix = oui_registry[cls]["oui_prefix"]
+                    if not re.match(r'^([0-9A-Fa-f]{2}:){2}[0-9A-Fa-f]{2}$', prefix):
+                        print(f" -> FAIL: Corrupt or invalid 24-bit OUI prefix footprint detected for '{cls}': {prefix}")
+                        return False
+            
+            print(" -> PASS: Manifest network identity structure validated. OUI prefixes verified.")
+            return True
+        except Exception as e:
+            print(f" -> FAIL: Identity manifest validation routine exception caught: {e}")
+            return False
 
 # Local Test Environment Profile
 if __name__ == "__main__":
